@@ -25,10 +25,12 @@
           buildInputs = with pkgs; [
             python313
             python313Packages.pip
+            python313Packages.redis
             python313Packages.httpx
-            python313Packages.fastapi
+            python313Packages.flask
             python313Packages.requests
             python313Packages.fastapi-cli
+            python313Packages.functions-framework
           ];
 
           shellHook = ''
