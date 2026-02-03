@@ -33,8 +33,8 @@ class SWAPI:
       url = f"{base}/{resource}/?page=1"
       while url:
         r = await client.get(url)
-        if r.status_code != 200: return None
-        data = r.json()
-        results.extend(data["results"])
-        url = data["next"]
+        if r.status_code == 200:
+          data = r.json()
+          results.extend(data["results"])
+          url = data["next"]
     return results
