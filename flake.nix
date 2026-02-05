@@ -14,7 +14,12 @@
   }:
     flake-utils.lib.eachDefaultSystem (
       system: let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
+          config = {
+            allowUnfree = true;
+          };
+        };
       in {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
@@ -24,19 +29,17 @@
 
           buildInputs = with pkgs; [
             python313
+            terraform
+            terraform-ls
+            google-cloud-sdk
             python313Packages.pip
-            python313Packages.redis
             python313Packages.httpx
             python313Packages.flask
-            python313Packages.requests
-            python313Packages.fastapi-cli
             python313Packages.functions-framework
           ];
 
           shellHook = ''
-            echo "Python ${pkgs.python314.version} environment"
-            python --version
-            pip --version
+            echo "Python ${pkgs.python313.version} environment"
           '';
         };
       }
