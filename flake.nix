@@ -28,18 +28,21 @@
           ];
 
           buildInputs = with pkgs; [
-            python313
+            python312
             terraform
             terraform-ls
             google-cloud-sdk
-            python313Packages.pip
-            python313Packages.httpx
-            python313Packages.flask
-            python313Packages.functions-framework
+            python312Packages.pip
+            python312Packages.httpx
+            python312Packages.flask
+            python312Packages.pytest_8_3
+            python312Packages.pytest-mock
+            python312Packages.pytest-asyncio
+            python312Packages.functions-framework
           ];
 
           shellHook = ''
-            echo "Python ${pkgs.python313.version} environment"
+            echo "Python ${pkgs.python312.version} environment"
           '';
         };
       }
