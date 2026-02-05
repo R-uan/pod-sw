@@ -24,8 +24,8 @@ output "bucket_name" {
   value       = google_storage_bucket.function_bucket.name
 }
 
-# ID do projeto
-output "project_id" {
-  description = "ID do projeto GCP"
-  value       = var.project_id
+output "gateway_url" {
+  value       = google_api_gateway_gateway.gateway.default_hostname
+  description = "API Gateway URL"
 }
+

@@ -15,7 +15,7 @@ Critérios:
 Complementos:
 - Implementação de funcionalidades extras que possam trazer complexidade ao código.
 - Capacidade de ordenar os resultados de consultas.
-- Opção de consultar informações correlacionadas, como personagens em um filme específico.
+- [x] Opção de consultar informações correlacionadas, como personagens em um filme específico.
 - Funcionalidades extras que demonstrem sua habilidade em lidar com dados complexos e proporcionem uma experiência aprimorada para o usuário.
 - Inclusão de testes unitários.
 - Métodos de autenticação.
