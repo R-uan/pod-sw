@@ -1,65 +1,75 @@
-# Desafio Tecnico Power of Data
+# Desafio Técnico Power of Data
 
-### Dependencias
-- `python311`
-- `flask`
-- `httpx`
-- `functions-framework`
-- `google cloud api` 
-- `terraform`
+API wrapper para SWAPI (Star Wars API) deployada no Google Cloud com Functions e API Gateway.
 
-## Estrutura do Projeto
+## Dependências
+
+`python3.11` • `flask` • `httpx` • `functions-framework` • `terraform` • `gcloud CLI`
+
+## Estrutura
 
 ```
 pod-sw/
-├── src/                          # Código da Cloud Function
+├── src/
 │   ├── main.py
 │   ├── swapi.py
 │   └── requirements.txt
 ├── terraform/
-│   ├── main.tf                   # Configuração principal do Terraform
-│   ├── openapi.yaml.tpl          # Template do OpenAPI
-│   ├── credentials/
-│   │   └── terraform-key.json    # Credenciais (não versionar!)
-│   └── terraform.tfstate         # Estado do Terraform (criado automaticamente)
+│   ├── main.tf
+│   ├── openapi.yaml.tpl
+│   └── credentials/
+│       └── terraform-key.json    # ⚠️ Não versionar!
 └── README.md
 ```
 
-## Google Cloud Setup
-
-Execute estes comandos antes de rodar o Terraform:
+## Desenvolvimento Local
 
 ```bash
-# Login no Google Cloud
+# Instalar dependências
+pip install -r requirements-dev.txt
+
+# Executar API
+functions-framework --target=star_wars_api --source=src/main.py
+
+# Testes
+pytest
+```
+
+## Deploy Google Cloud
+
+### 1. Setup Projeto
+
+```bash
+cd terraform
+
+# Autenticar
 gcloud auth login
 
-# Create project
+# Criar projeto
 gcloud projects create pod-sw-api --name="Star Wars API Project"
-
-# Set as default project
 gcloud config set project pod-sw-api
 
-# Link billing account (required to use services)
-# First, list your billing accounts
-gcloud billing accounts list
-
-# Link billing (replace BILLING_ACCOUNT_ID with actual ID from above)
+# Vincular billing (substitua BILLING_ACCOUNT_ID)
 gcloud billing projects link pod-sw-api --billing-account=BILLING_ACCOUNT_ID
 
-# Habilitar APIs necessárias
-gcloud services enable cloudfunctions.googleapis.com
-gcloud services enable apigateway.googleapis.com
-gcloud services enable servicemanagement.googleapis.com
-gcloud services enable servicecontrol.googleapis.com
-gcloud services enable cloudbuild.googleapis.com
-gcloud services enable cloudresourcemanager.googleapis.com
-gcloud services enable run.googleapis.com
+# Habilitar APIs
+gcloud services enable cloudfunctions.googleapis.com \
+  apigateway.googleapis.com \
+  servicemanagement.googleapis.com \
+  servicecontrol.googleapis.com \
+  cloudbuild.googleapis.com \
+  cloudresourcemanager.googleapis.com \
+  run.googleapis.com
+```
 
-# Create service account for Terraform
+### 2. Service Account
+
+```bash
+# Criar service account
 gcloud iam service-accounts create terraform-sa \
   --display-name="Terraform Service Account"
 
-# Grant Editor role
+# Adicionar permissões
 gcloud projects add-iam-policy-binding pod-sw-api \
   --member="serviceAccount:terraform-sa@pod-sw-api.iam.gserviceaccount.com" \
   --role="roles/editor"
@@ -68,64 +78,25 @@ gcloud projects add-iam-policy-binding pod-sw-api \
   --member="serviceAccount:terraform-sa@pod-sw-api.iam.gserviceaccount.com" \
   --role="roles/iam.securityAdmin"
 
-# Create and download credentials
+# Gerar chave (⚠️ manter segredo!)
 gcloud iam service-accounts keys create credentials/terraform-key.json \
   --iam-account=terraform-sa@pod-sw-api.iam.gserviceaccount.com
 ```
 
-## Terraform Apply
-
-### 1. Navegar para o diretório do Terraform
-
-```bash
-cd ./pod-sw/terraform
-```
-
-### 2. Inicializar o Terraform
+### 3. Deploy com Terraform
 
 ```bash
 terraform init
-```
-
-Este comando:
-- Baixa os providers do Google Cloud
-- Inicializa o backend local
-- Prepara o diretório para uso
-
-### 3. Visualizar o plano de execução
-
-```bash
 terraform plan
+terraform apply    # Digite 'yes' para confirmar
 ```
 
-Este comando mostra o que será criado/modificado/destruído **sem aplicar mudanças**.
-
-### 4. Aplicar as mudanças
+### 4. Testar API
 
 ```bash
-terraform apply
-```
-
-- O Terraform mostrará o plano novamente
-- Digite `yes` para confirmar
-- Aguarde a criação dos recursos (~3-5 minutos)
-
-### 5. Visualizar outputs
-
-```bash
-terraform output
-```
-
-### 6. Testar a API
-
-```bash
-# Obter a URL do gateway
 GATEWAY_URL=$(terraform output -raw gateway_url)
 
-# Testar endpoints
 curl https://${GATEWAY_URL}/people
-curl https://${GATEWAY_URL}/planets
-curl https://${GATEWAY_URL}/films
 curl https://${GATEWAY_URL}/people/1
 curl https://${GATEWAY_URL}/people/1/vehicles
 curl "https://${GATEWAY_URL}/people?name=luke"
@@ -133,51 +104,33 @@ curl "https://${GATEWAY_URL}/people?name=luke"
 
 ## Limpeza
 
-Para remover todos os recursos criados:
-
 ```bash
-# Destruir infraestrutura
 terraform destroy
-
-# Opcional: remover arquivos de estado
-rm -rf .terraform
-rm terraform.tfstate*
-rm ../function.zip
+rm -rf .terraform terraform.tfstate* ../function.zip
 ```
 
-## Recursos Criados
-
-Este Terraform cria:
-- ✅ Storage Bucket (para código da função)
-- ✅ Cloud Function Gen 2
-- ✅ API Gateway API
-- ✅ API Gateway Config
-- ✅ API Gateway Gateway
-- ✅ IAM Bindings (permissões)
-
 ## API Endpoints
-- `/{recurso}`
-- `/{recurso}?filtro=valor&filtro=valor...`
-- `/{recurso}/{id}`
-- `/{recurso}/{id}/{relação}`
 
-### Recursos, Relações e Filtros Disponiveis
-- `people`
-    - Relações: species, films, starships, vehicles
-    - Filtros: name, eye_color, gender, hair_color, skin_color
-- `planets`
-    - Relações: residents, films
-    - Filtros: name, climate, terrain
-- `films`
-    - Relações: characters, planets, species, starships, vehicles
-    - Filtros: title, director, producer, year
-- `starships`
-    - Relações: films, pilots
-    - Filtros: name, model
-- `vehicles`
-    - Relações: films, pilots
-    - Filtros: name, model, class
-- `species`
-    - Relações: people, films
-    - Filtros: name, classification, eye_color, hair_color, designation
+**Padrões:**
+- `/{recurso}` - Listar todos
+- `/{recurso}?filtro=valor` - Filtrar
+- `/{recurso}/{id}` - Buscar por ID
+- `/{recurso}/{id}/{relação}` - Buscar relações
 
+**Recursos:**
+
+| Recurso | Relações | Filtros |
+|---------|----------|---------|
+| `people` | species, films, starships, vehicles | name, eye_color, gender, hair_color, skin_color |
+| `planets` | residents, films | name, climate, terrain |
+| `films` | characters, planets, species, starships, vehicles | title, director, producer, year |
+| `starships` | films, pilots | name, model |
+| `vehicles` | films, pilots | name, model, class |
+| `species` | people, films | name, classification, eye_color, hair_color, designation |
+
+## Infraestrutura
+
+- Storage Bucket
+- Cloud Function Gen 2
+- API Gateway (API, Config, Gateway)
+- IAM Bindings
