@@ -1,11 +1,11 @@
 provider "google" {
-  project     = "pod-sw"
+  project     = "pod-sw-api"
   region      = "us-central1"
   credentials = file("credentials/terraform-key.json")
 }
 
 provider "google-beta" {
-  project     = "pod-sw"
+  project     = "pod-sw-api"
   region      = "us-central1"
   credentials = file("credentials/terraform-key.json")
 }
